@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>パターン抽出プログラム</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        h1 { text-align: center; }
+        label, input, textarea, button { display: block; margin-bottom: 10px; }
+        input[type="text"], textarea { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        textarea { height: 150px; }
+        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #0056b3; }
+        #results { margin-top: 20px; padding: 15px; border: 1px solid #ddd; background-color: #f9f9f9; white-space: pre-wrap; }
+        .input-group { margin-bottom: 20px; padding: 10px; border: 1px solid #eee; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+    <h1>📝 パターンに基づくテキスト抽出</h1>
+
+    <div class="input-group">
+        <label for="consonants">**子音 (C)** (スペースやコンマ区切りでなく、**文字を連続**させて入力):</label>
+        <input type="text" id="consonants" value="kstnhmyrwgzdbp" placeholder="例: kstnhmyrwgzdbp">
+    </div>
+
+    <div class="input-group">
+        <label for="vowels">**母音 (V)** (スペースやコンマ区切りでなく、**文字を連続**させて入力):</label>
+        <input type="text" id="vowels" value="aeiou" placeholder="例: aeiou">
+    </div>
+
+    <div class="input-group">
+        <label for="pattern">**抽出パターン** (CVCVのように、**CとV**で指定):</label>
+        <input type="text" id="pattern" value="CVCVCV" placeholder="例: CVCV, CVCVCV">
+    </div>
+
+    <div class="input-group">
+        <label for="inputText">**抽出するテキスト** (改行区切り):</label>
+        <textarea id="inputText" placeholder="一行に一単語/フレーズを入力してください。">kakiku
+sasisu
+tatitu
+atteta
+sageta
+ageta.
+aetaga</textarea>
+    </div>
+
+    <button onclick="extractText()">抽出実行</button>
+
+    <hr>
+
+    <h2>✅ 抽出結果</h2>
+    <div id="results">結果が表示されます</div>
+
+    <script>
+        function extractText() {
+            // 1. 入力値の取得
+            const consonants = document.getElementById('consonants').value.toLowerCase().replace(/[^a-z]/g, ''); // アルファベット以外を除去
+            const vowels = document.getElementById('vowels').value.toLowerCase().replace(/[^a-z]/g, ''); // アルファベット以外を除去
+            const patternInput = document.getElementById('pattern').value.toUpperCase().trim();
+            const inputText = document.getElementById('inputText').value;
+            const resultsDiv = document.getElementById('results');
+
+            if (!consonants || !vowels || !patternInput) {
+                resultsDiv.textContent = '子音、母音、抽出パターンを正しく入力してください。';
+                return;
+            }
+
+            // 2. パターンから正規表現文字列を構築
+            let regexString = '^'; // 行の先頭からマッチを開始
+            
+            for (const char of patternInput) {
+                if (char === 'C') {
+                    // C (子音) のパターン: [k s t n h m y r w g z d b p] のいずれか
+                    // 正規表現では、集合は [ ] で表す
+                    regexString += `[${consonants}]`;
+                } else if (char === 'V') {
+                    // V (母音) のパターン: [a i u e o] のいずれか
+                    regexString += `[${vowels}]`;
+                } else {
+                    // C, V 以外の文字があった場合はエラー
+                    resultsDiv.textContent = `エラー: 抽出パターンに無効な文字 ('${char}') が含まれています。CまたはVのみを使用してください。`;
+                    return;
+                }
+            }
+
+            // 構築したパターンの直後に何か文字があってもマッチしないようにする
+            // $ は行の末尾を意味する
+            regexString += '$'; 
+
+            // 3. 正規表現オブジェクトの作成
+            // i フラグは大文字・小文字を区別しないマッチングを行う
+            let patternRegex;
+            try {
+                 patternRegex = new RegExp(regexString, 'i');
+            } catch (e) {
+                 resultsDiv.textContent = `正規表現の構築に失敗しました: ${e.message}`;
+                 return;
+            }
+
+
+            // 4. テキストを行ごとに処理し、マッチする行を抽出
+            const lines = inputText.split('\n');
+            const matchedLines = [];
+
+            for (const line of lines) {
+                // 行頭/行末のスペースなどを除去し、アルファベット以外の文字を除去してからチェック
+                const cleanedLine = line.trim().replace(/[^a-zA-Z]/g, '');
+                
+                if (cleanedLine && patternRegex.test(cleanedLine)) {
+                    // 元の行を結果として保存
+                    matchedLines.push(line.trim()); 
+                }
+            }
+
+            // 5. 結果の表示
+            if (matchedLines.length > 0) {
+                resultsDiv.textContent = matchedLines.join('\n');
+            } else {
+                resultsDiv.textContent = '一致する行は見つかりませんでした。';
+            }
+        }
+    </script>
+
+</body>
+</html>
