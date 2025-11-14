@@ -12,7 +12,18 @@
         textarea { height: 150px; }
         button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
         button:hover { background-color: #0056b3; }
-        #results { margin-top: 20px; padding: 15px; border: 1px solid #ddd; background-color: #f9f9f9; white-space: pre-wrap; }
+        
+        /* 💡 結果表示用textareaのスタイル */
+        textarea#results { 
+            height: 200px; /* 高さを調整 */
+            margin-top: 20px; 
+            padding: 15px; 
+            border: 1px solid #007bff; /* 枠線を強調 */
+            background-color: #eaf3ff; /* 背景色を変更 */
+            resize: vertical; /* 縦方向のみリサイズ可能に */
+            color: #333;
+        }
+        
         .input-group { margin-bottom: 20px; padding: 10px; border: 1px solid #eee; border-radius: 5px; }
     </style>
 </head>
@@ -51,7 +62,7 @@ aetaga</textarea>
     <hr>
 
     <h2>✅ 抽出結果</h2>
-    <div id="results">結果が表示されます</div>
+    <textarea id="results" readonly placeholder="結果が表示されます"></textarea>
 
     <script>
         function extractText() {
@@ -60,10 +71,10 @@ aetaga</textarea>
             const vowels = document.getElementById('vowels').value.toLowerCase().replace(/[^a-z]/g, ''); // アルファベット以外を除去
             const patternInput = document.getElementById('pattern').value.toUpperCase().trim();
             const inputText = document.getElementById('inputText').value;
-            const resultsDiv = document.getElementById('results');
+            const resultsTextarea = document.getElementById('results'); // resultsDivをresultsTextareaに変更
 
             if (!consonants || !vowels || !patternInput) {
-                resultsDiv.textContent = '子音、母音、抽出パターンを正しく入力してください。';
+                resultsTextarea.value = '子音、母音、抽出パターンを正しく入力してください。'; // .valueを使用
                 return;
             }
 
@@ -80,7 +91,7 @@ aetaga</textarea>
                     regexString += `[${vowels}]`;
                 } else {
                     // C, V 以外の文字があった場合はエラー
-                    resultsDiv.textContent = `エラー: 抽出パターンに無効な文字 ('${char}') が含まれています。CまたはVのみを使用してください。`;
+                    resultsTextarea.value = `エラー: 抽出パターンに無効な文字 ('${char}') が含まれています。CまたはVのみを使用してください。`; // .valueを使用
                     return;
                 }
             }
@@ -95,7 +106,7 @@ aetaga</textarea>
             try {
                  patternRegex = new RegExp(regexString, 'i');
             } catch (e) {
-                 resultsDiv.textContent = `正規表現の構築に失敗しました: ${e.message}`;
+                 resultsTextarea.value = `正規表現の構築に失敗しました: ${e.message}`; // .valueを使用
                  return;
             }
 
@@ -116,9 +127,9 @@ aetaga</textarea>
 
             // 5. 結果の表示
             if (matchedLines.length > 0) {
-                resultsDiv.textContent = matchedLines.join('\n');
+                resultsTextarea.value = matchedLines.join('\n'); // .valueを使用
             } else {
-                resultsDiv.textContent = '一致する行は見つかりませんでした。';
+                resultsTextarea.value = '一致する行は見つかりませんでした。'; // .valueを使用
             }
         }
     </script>
